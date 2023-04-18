@@ -137,15 +137,12 @@ enum KernelTypes GetKernelType(char* type){
 
 //main:
 //argv is expected to take 2 arguments.  First is the source file name (can be jpg, png, bmp, tga).  Second is the lower case name of the algorithm.
-int main(int argc,char* argv[]){
-    printf("Please enter the number of threads you wish to launch: ");
-    scanf("%d", &thread_count);
-	
+int main(int argc,char** argv){
     long t1,t2;
     t1 = time(NULL);
 
     stbi_set_flip_vertically_on_load(0); 
-    if (argc!=3) return Usage();
+    if (argc!=4) return Usage();
     char* fileName=argv[1];
     if (!strcmp(argv[1],"pic4.jpg")&&!strcmp(argv[2],"gauss")){
         printf("You have applied a gaussian filter to Gauss which has caused a tear in the time-space continum.\n");
@@ -162,7 +159,9 @@ int main(int argc,char* argv[]){
     destImage.height=srcImage.height;
     destImage.width=srcImage.width;
     destImage.data=malloc(sizeof(uint8_t)*destImage.width*destImage.bpp*destImage.height);
-   
+
+    thread_count = strtol(argv[3], NULL, 10);
+
     initThreads(&srcImage, &destImage, algorithms[type]);
 
     stbi_write_png("output.png",destImage.width,destImage.height,destImage.bpp,destImage.data,destImage.bpp*destImage.width);
