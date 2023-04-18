@@ -1,7 +1,13 @@
-Script started on Tue Apr 18 18:35:41 2023
-]0;philong@r1n01.darwin:~/CISC372_picProject[?1034h[philong@r1n01 CISC372_picProject]$ exitsrun ./imageT pic1.jpg edge 4[1P pic1.jpg edge 4
+Script started on Tue Apr 18 18:51:42 2023
+]0;philong@r1n15.darwin:~/CISC372_picProject[?1034h[philong@r1n15 CISC372_picProject]$ srun ./imageOpenMP pic1j .jpg 4
+Usage: image <filename> <type> <thread_count>
+	where type is one of (edge,sharpen,blur,gauss,emboss,identity)
+srun: error: r1n15: task 0: Exited with exit code 255
+]0;philong@r1n15.darwin:~/CISC372_picProject[philong@r1n15 CISC372_picProject]$ srun ./imageOpenMP pic1.jpg 4jpg  4[1@e[1@d[1@g[1@e
 Took 7 seconds
-]0;philong@r1n01.darwin:~/CISC372_picProject[philong@r1n01 CISC372_picProject]$ exit
+]0;philong@r1n15.darwin:~/CISC372_picProject[philong@r1n15 CISC372_picProject]$ srun ./imageOpenMP pic1.jpg edge 4P[1P[1P[1P[1P[1P[1P[1@T[1@h[1@r[1@e[1@a[1@d pic1.jpg edge 4
+Took 6 seconds
+]0;philong@r1n15.darwin:~/CISC372_picProject[philong@r1n15 CISC372_picProject]$ exit
 exit
 
-Script done on Tue Apr 18 18:35:54 2023
+Script done on Tue Apr 18 18:52:27 2023
