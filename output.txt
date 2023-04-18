@@ -1,0 +1,7 @@
+Script started on Tue Apr 18 18:35:41 2023
+]0;philong@r1n01.darwin:~/CISC372_picProject[?1034h[philong@r1n01 CISC372_picProject]$ exitsrun ./imageT pic1.jpg edge 4[1P pic1.jpg edge 4
+Took 7 seconds
+]0;philong@r1n01.darwin:~/CISC372_picProject[philong@r1n01 CISC372_picProject]$ exit
+exit
+
+Script done on Tue Apr 18 18:35:54 2023
