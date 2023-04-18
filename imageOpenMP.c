@@ -3,6 +3,11 @@
 #include <time.h>
 #include <string.h>
 #include "image.h"
+#include <math.h>
+
+#ifdef OPENMP
+#include <omp.h>
+#endif
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -51,27 +56,43 @@ uint8_t getPixelValue(Image* srcImage,int x,int y,int bit,Matrix algorithm){
     return result;
 }
 
-//convolute:  Applies a kernel matrix to an image
+//open_convolute:  Applies a kernel matrix to an image
 //Parameters: srcImage: The image being convoluted
 //            destImage: A pointer to a  pre-allocated (including space for the pixel array) structure to receive the convoluted image.  It should be the same size as srcImage
 //            algorithm: The kernel matrix to use for the convolution
 //Returns: Nothing
-void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
-    int row,pix,bit,span;
-    span=srcImage->bpp*srcImage->bpp;
-    for (row=0;row<srcImage->height;row++){
-        for (pix=0;pix<srcImage->width;pix++){
-            for (bit=0;bit<srcImage->bpp;bit++){
-                destImage->data[Index(pix,row,srcImage->width,bit,srcImage->bpp)]=getPixelValue(srcImage,pix,row,bit,algorithm);
-            }
-        }
-    }
+void open_convolute(Image* srcImage, Image* destImage, Matrix algorithm)
+{
+	#ifdef OPENMP
+	int local_rank = omp_get_thread_num();
+	int thread_count = omp_get_num_threads();
+	#else
+	int local_rank = 0;
+	int thread_count = 1;
+	#endif
+
+	int block_size = (int)((srcImage->height) / thread_count);
+	int local_row = local_rank * block_size;
+	int local_end = (local_rank + 1) * (block_size - 1);
+	if(local_end >= srcImage->height)
+		local_end = srcImage->height - 1;
+
+	for(int row = local_row; row <= local_end; row++)
+	{
+		for(int pix = 0; pix < srcImage->width; pix++)
+		{
+			for(int bit = 0; bit < srcImage->bpp; bit++)
+			{
+				destImage->data[Index(pix, row, srcImage->width, bit, srcImage->bpp)] = getPixelValue(srcImage, pix, row, bit, algorithm);
+			}
+		}
+	}
 }
 
 //Usage: Prints usage information for the program
 //Returns: -1
 int Usage(){
-    printf("Usage: image <filename> <type>\n\twhere type is one of (edge,sharpen,blur,gauss,emboss,identity)\n");
+    printf("Usage: image <filename> <type> <thread_count>\n\twhere type is one of (edge,sharpen,blur,gauss,emboss,identity)\n");
     return -1;
 }
 
@@ -88,13 +109,13 @@ enum KernelTypes GetKernelType(char* type){
 }
 
 //main:
-//argv is expected to take 2 arguments.  First is the source file name (can be jpg, png, bmp, tga).  Second is the lower case name of the algorithm.
+//argv is expected to take 3 arguments.  First is the source file name (can be jpg, png, bmp, tga).  Second is the lower case name of the algorithm. Third is the number of threads that should be launched.
 int main(int argc,char** argv){
     long t1,t2;
     t1=time(NULL);
 
     stbi_set_flip_vertically_on_load(0); 
-    if (argc!=3) return Usage();
+    if (argc!=4) return Usage();
     char* fileName=argv[1];
     if (!strcmp(argv[1],"pic4.jpg")&&!strcmp(argv[2],"gauss")){
         printf("You have applied a gaussian filter to Gauss which has caused a tear in the time-space continum.\n");
@@ -111,7 +132,13 @@ int main(int argc,char** argv){
     destImage.height=srcImage.height;
     destImage.width=srcImage.width;
     destImage.data=malloc(sizeof(uint8_t)*destImage.width*destImage.bpp*destImage.height);
-    convolute(&srcImage,&destImage,algorithms[type]);
+    
+    int thread_count = strtol(argv[3], NULL, 10);
+    
+    # pragma omp parallel num_threads(thread_count)
+
+    open_convolute(&srcImage,&destImage,algorithms[type]);
+
     stbi_write_png("output.png",destImage.width,destImage.height,destImage.bpp,destImage.data,destImage.bpp*destImage.width);
     stbi_image_free(srcImage.data);
     
